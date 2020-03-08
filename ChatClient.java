@@ -138,6 +138,9 @@ public class ChatClient
 	 */
 	private static void nick(String name) {
 		System.out.println("nick command not yet implemented");
+		nick = name;
+		//Either we could have the message object such as message.setNick(name). Or we could have a global variable-
+		//nick present in this class and have it be set here
 		// TODO Auto-generated method stub
 		
 	}
@@ -145,8 +148,14 @@ public class ChatClient
 	 * List channels and number of users
 	 */
 	private static void list() {
+		if(connectionEstablished){
+			for(int i = 0, i < server.numberOfChannels -1, i++){
+				System.printout.ln(serverchannels[i].name + ", Users: " + serverchannels[i].numOfUsers);
+			}
+		}
 		System.out.println("list command not yet implemented");
 		// TODO Auto-generated method stub
+		// Not sure how many methods we want in the server.java itself.
 		
 	}
 	/**
@@ -188,6 +197,12 @@ public class ChatClient
 	 * Print out help message
 	 */
 	private static void help() {
+		System.out.println("/connect connects to the chat server.");
+		System.out.println("/list posts all available channels with number of users in said channels.");
+		System.out.println("/join <channelname> enters the chat of that particular channel.");
+		System.out.println("/leave allows you to exit the channel.");
+		System.out.println("/stats still not sure what this does.");
+		System.out.println("/quit leaves the channel, exits the server, then closes the client.");
 		System.out.println("help command not yet implemented");
 		// TODO Auto-generated method stub
 		
