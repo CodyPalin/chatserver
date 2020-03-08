@@ -19,10 +19,15 @@ public class ChatClient
             Socket s = new Socket(host, port);
             out = s.getOutputStream();
             in = s.getInputStream();
-            //client code here
             while(true){
+            	//server output
+            	ObjectInputStream oin = new ObjectInputStream(in);
+            	String message = (String) oin.readObject();
+            	System.out.println(message);
+            	//client input (put this on a thread? or have a thread that just waits for input from server?)
 	            Scanner scanner = new Scanner(System. in);
 	            String input = scanner.nextLine();
+	            
 	            if(input.charAt(0) == '/')
 	            {
 	            	String[] command = input.split(" ");
@@ -113,9 +118,9 @@ public class ChatClient
 
 		} catch (IOException e1) {
 			System.out.println(e1);
-		} /*catch (ClassNotFoundException e2) {
+		} catch (ClassNotFoundException e2) {
 			System.out.println(e2);
-		}*/
+		}
     }
 	
 	

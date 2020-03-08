@@ -4,19 +4,50 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.InetAddress;
 import java.lang.System;
 import java.util.Date;
-public class ChatServer {
+class UserConnection extends Thread{
+	private Socket client;
+	private int userid;
 	private InputStream in;
 	private OutputStream out;
+	UserConnection(Socket client, int userid) throws SocketException{
+		this.client = client;
+		this.userid = userid;
+		setPriority(NORM_PRIORITY - 1);
+	}
+	public void run(){
+		try {
+			System.out.println("starting chat with client "+ client.getInetAddress().getHostAddress());
+			out = client.getOutputStream();
+			in = client.getInputStream();
+			String message = "SERVER: Hello guest"+userid+" you are not yet connected to any channel, use /nick to change your name.";
+			ObjectOutputStream oout = new ObjectOutputStream(out);
+			oout.writeObject(message);
+			oout.flush();
+			
+			
+			
+		}catch(IOException e)
+		{
+			System.out.println(e);
+			System.out.println("client"+userid+" has disconnected");
+		}/* catch (ClassNotFoundException e2) {
+			System.out.println(e2);
+			System.out.println("client"+userid+" has disconnected");
+		}*/
+	}
+}
+
+public class ChatServer {
 	private int port = 5121;
     private ServerSocket s;
     
 
     public static void main(String args[]) {
         ChatServer server = new ChatServer();
-        server.serviceClients();
     }
 
     public ChatServer() {
@@ -26,26 +57,21 @@ public class ChatServer {
 		} catch (IOException e) {
 			System.err.println(e);
 		}
+    	int userid = 0;
+    	Socket client;
+    	while(true)
+    	{
+    		try {
+    			//connect
+    			client = s.accept();
+    			userid++;
+    			System.out.println(
+				        "Received connect from " + client.getInetAddress().getHostAddress() + ": " + client.getPort());
+    			new UserConnection(client, userid).start();
+    		}catch (IOException e) {
+				System.out.println(e);
+			}
+    	}
+    	
     }
-    public void serviceClients() {
-        Socket sock;
-        
-
-        while (true) {
-			try {
-				sock = s.accept();
-				out = sock.getOutputStream();
-				in = sock.getInputStream();
-				
-				// Note that client gets a temporary/transient port on it's side
-				// to talk to the server on its well known port
-				System.out.println(
-				        "Received connect from " + sock.getInetAddress().getHostAddress() + ": " + sock.getPort());
-                } catch (IOException e) {
-                    System.err.println(e);
-                }
-
-                //server code here
-            }
-        }
 }
