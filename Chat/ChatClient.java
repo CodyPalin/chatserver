@@ -218,7 +218,6 @@ public class ChatClient
 		System.out.println("/leave allows you to exit the channel.");
 		System.out.println("/stats still not sure what this does.");
 		System.out.println("/quit leaves the channel, exits the server, then closes the client.");
-		System.out.println("help command not yet implemented");
 		// TODO Auto-generated method stub
 		
 	}

@@ -39,10 +39,18 @@ class UserConnection extends Thread{
 			boolean connected = true;
 			while(connected) {
 	        	ObjectInputStream oin = new ObjectInputStream(in);
-	        	Package clientinput = (Package) oin.readObject();
-	        	String channel = clientinput.getChannel();
-	        	//just print to server console for now
-	        	System.out.println(clientinput.getName()+": "+clientinput.getMessage());
+	        	//if chat message
+	        	Object input = oin.readObject();
+	        	if(input instanceof Package) {
+		        	Package clientinput = (Package) input;
+		        	String channel = clientinput.getChannel();
+		        	//just print to server console for now
+		        	System.out.println(clientinput.getName()+": "+clientinput.getMessage());
+	        	}
+	        	else { //else should be a command string
+	        		//case statement here for commands that will be passed to server
+	        		String command = (String) input;
+	        	}
 			}
 			
 		}catch(IOException e)
