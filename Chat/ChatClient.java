@@ -2,6 +2,7 @@ package Chat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
@@ -126,6 +127,11 @@ public class ChatClient
 	            }
 	            else {
 	            	//chat message code
+	            	ObjectOutputStream oout = new ObjectOutputStream(out);
+	            	//TODO check to see if in a channel before sending message
+	            	pack.setMessage(input);
+	    			oout.writeObject(pack);
+	    			oout.flush();
 	            }
 				//System.out.println("your input is: "+input);
             }

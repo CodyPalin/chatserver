@@ -1,6 +1,7 @@
 package Chat;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -9,6 +10,7 @@ import java.net.SocketException;
 import java.net.InetAddress;
 import java.lang.System;
 import java.util.Date;
+import Chat.Package;
 class UserConnection extends Thread{
 	private Socket client;
 	private int userid;
@@ -33,17 +35,24 @@ class UserConnection extends Thread{
 			oout = new ObjectOutputStream(out);
 			oout.writeObject(message);
 			oout.flush();
-			//wait for input code?
-			
+			//wait for input code
+			boolean connected = true;
+			while(connected) {
+	        	ObjectInputStream oin = new ObjectInputStream(in);
+	        	Package clientinput = (Package) oin.readObject();
+	        	String channel = clientinput.getChannel();
+	        	//just print to server console for now
+	        	System.out.println(clientinput.getName()+": "+clientinput.getMessage());
+			}
 			
 		}catch(IOException e)
 		{
 			System.out.println(e);
 			System.out.println("client"+userid+" has disconnected");
-		}/* catch (ClassNotFoundException e2) {
+		} catch (ClassNotFoundException e2) {
 			System.out.println(e2);
 			System.out.println("client"+userid+" has disconnected");
-		}*/
+		}
 	}
 }
 
