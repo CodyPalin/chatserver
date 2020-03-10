@@ -16,6 +16,7 @@ class UserConnection extends Thread{
 	private int userid;
 	private InputStream in;
 	private OutputStream out;
+	private Thread[] channels; //a list of threads with a thread being associated with a chat channel. Will attempt a 2 channel chatroom.
 	UserConnection(Socket client, int userid) throws SocketException{
 		this.client = client;
 		this.userid = userid;
@@ -44,6 +45,12 @@ class UserConnection extends Thread{
 	        	if(input instanceof Package) {
 		        	Package clientinput = (Package) input;
 		        	String channel = clientinput.getChannel();
+				if(channel.equals(channels[0]){
+					//join the thread. for channel 0.
+				}
+				if(channel.equals(channels[1]){
+					//join the thread for channel 1.
+				}
 		        	//just print to server console for now
 		        	System.out.println(clientinput.getName()+": "+clientinput.getMessage());
 	        	}
@@ -70,6 +77,11 @@ public class ChatServer {
     
 
     public static void main(String args[]) {
+	channels = new thread[2];                  // Creates a 2 threads that respond to a different channel. The for loop is my attempt at instantiating these two threads.
+	for(int i = 0; i < channels.size -1; i++){
+		channels[i] = new Thread(this+i);    //attempt at making two different thread names.
+		channels[i].start();
+	}
         ChatServer server = new ChatServer();
     }
 
