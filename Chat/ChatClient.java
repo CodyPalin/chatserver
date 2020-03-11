@@ -8,6 +8,27 @@ import java.net.Socket;
 import java.util.Scanner;
 
 import Chat.Package;
+class ChatListener extends Thread{
+	InputStream in;
+	ChatListener(InputStream in){
+		this.in = in;
+	}
+	public void run(){
+		try {
+			while(true) {
+				ObjectInputStream oin = new ObjectInputStream(in);
+				String chatmessage = (String) oin.readObject();
+				System.out.println(chatmessage);
+			}
+		} catch (IOException e) {
+			System.out.println(e);
+			System.out.println("Server has closed.");
+		} catch (ClassNotFoundException e) {
+			System.out.println(e);
+			System.out.println("Server has closed.");
+		}
+	}
+}
 public class ChatClient
 {
 	private static InputStream in;
@@ -28,6 +49,8 @@ public class ChatClient
         	ObjectInputStream oin = new ObjectInputStream(in);
         	int usernum = (int) oin.readObject();
         	pack.setName("guest"+usernum);
+        	
+        	new ChatListener(in).start();
             while(true){
             	//server output
             	if(expectingresponse) {
