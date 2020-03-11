@@ -35,22 +35,43 @@ public class ChatClient
 	private static OutputStream out;
 	private static Package pack = new Package();
 	private static boolean expectingresponse = true;
+	private static Socket s;
+	private static boolean notQuit = false;
 	public static void main(String args[]) {
-		if (args.length != 2) {
-			System.err.println("Usage: java ChatClient <serverhost> <port>");
-			System.exit(1);
-        }
-        String host = args[0];
-        int port = Integer.parseInt(args[1]);
+		// if (args.length != 2) {
+		// 	System.err.println("Usage: java ChatClient <serverhost> <port>");
+		// 	System.exit(1);
+		// }
+	while(true){
+		while(!notQuit){
+			Scanner scanner = new Scanner(System.in);
+			String input = scanner.nextLine();
+			String[] command = input.split(" ");
+			if(command[0].equals("/connect")){
+				if(command.length == 3) {
+					connect(command[1], command[2]);
+				}
+				else {
+					System.err.println("usage: /connect <server-name> port");
+				}
+			}
+			else {
+				System.err.println("usage: /connect <server-name> port");
+			}
+		}
+        // String host = args[0];
+        // int port = Integer.parseInt(args[1]);
         try {
-            Socket s = new Socket(host, port);
-            out = s.getOutputStream();
-            in = s.getInputStream();
+            // Socket s = new Socket(host, port);
+            // out = s.getOutputStream();
+            // in = s.getInputStream();
         	ObjectInputStream oin = new ObjectInputStream(in);
         	int usernum = (int) oin.readObject();
         	pack.setName("guest"+usernum);
-        	new ChatListener(in).start();
-            while(true){
+        	
+			new ChatListener(in).start();
+			//notQuit = true;
+            while(notQuit){
             	//server output
             	if(expectingresponse) {
             	oin = new ObjectInputStream(in);
@@ -69,10 +90,10 @@ public class ChatClient
 	            	switch(command[0]) {
 	            	case "/connect":
 	            		if(command.length == 2) {
-	            			connect(command[1]);
+	            			connect(command[1], command[2]);
 	            		}
 	            		else {
-	            			System.err.println("usage: /connect <server-name>");
+	            			System.err.println("usage: /connect <server-name> port");
 	            		}
 	            		break;
 	            	case "/nick":
@@ -163,6 +184,7 @@ public class ChatClient
 		} catch (ClassNotFoundException e2) {
 			System.out.println(e2);
 		}
+	}
     }
 	
 	
@@ -170,9 +192,17 @@ public class ChatClient
 	 * @param servername
 	 * Connect to named server
 	 */
-	private static void connect(String servername) {
-		System.out.println("connect command not yet implemented");
-		
+	private static void connect(String servername, String port) {
+		int portnum = Integer.parseInt(port);
+		notQuit = true;
+		try {
+		s = new Socket(servername, portnum);
+        out = s.getOutputStream();
+		in = s.getInputStream();
+		} catch (IOException e1) {
+			System.out.println(e1);
+		}
+
 	}
 	/**
 	 * @param name
@@ -190,7 +220,15 @@ public class ChatClient
 	 * List channels and number of users
 	 */
 	private static void list() {
-		System.out.println("list command not yet implemented");
+		//System.out.println("list command not yet implemented");
+		ObjectOutputStream oout;
+		try {
+			oout = new ObjectOutputStream(out);
+			oout.writeObject("/list");
+	    	oout.flush();
+		} catch (IOException e1) {
+			System.out.println(e1);
+		}
 		// TODO Auto-generated method stub
 		// Not sure how many methods we want in the server.java itself.
 		
@@ -245,7 +283,16 @@ public class ChatClient
 	 * Leave chat and disconnect from server
 	 */
 	private static void quit() {
-		System.out.println("quit command not yet implemented");
+		notQuit = false;
+		pack.setChannel("");
+		pack.setMessage("");
+		pack.setName("");
+		//System.out.println("quit command not yet implemented");
+		try {
+			s.close();
+		} catch (IOException e1) {
+			System.out.println(e1);
+		}
 		// TODO Auto-generated method stub
 		
 	}
@@ -266,8 +313,14 @@ public class ChatClient
 	 * Ask server for some stats
 	 */
 	private static void stats() {
-		System.out.println("stats command not yet implemented");
-		// TODO Auto-generated method stub
+		ObjectOutputStream oout;
+		try {
+			oout = new ObjectOutputStream(out);
+			oout.writeObject("/stats");
+	    	oout.flush();
+		} catch (IOException e1) {
+			System.out.println(e1);
+		}
 		
 	}
 }
