@@ -82,7 +82,7 @@ public class ChatClient
 	            	case "/leave":
 	            		if(command.length == 1) {
 							leave();
-							ObjectOutputStream oout = new ObjectOutputStream(out);
+							ObjectOutputStream oout = new ObjectOutputStream(out); //attempt at leave
 							oout.writeObject(pack);
 	    					oout.flush();
 	            		}
