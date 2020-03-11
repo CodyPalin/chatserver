@@ -200,8 +200,15 @@ public class ChatClient
 	 * Join a channel, all text typed is sent to all users on the channel
 	 */
 	private static void join(String string) {
-		System.out.println("join command not yet implemented");
-		// TODO Auto-generated method stub
+		pack.setChannel(string);
+		ObjectOutputStream oout;
+		try {
+			oout = new ObjectOutputStream(out);
+			oout.writeObject("/join " + string);
+	    	oout.flush();
+		} catch (IOException e1) {
+			System.out.println(e1);
+		}
 		
 	}
 	
