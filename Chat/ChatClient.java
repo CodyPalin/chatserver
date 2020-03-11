@@ -273,11 +273,7 @@ public class ChatClient
 	 * Leave the named channel
 	 */
 	private static void leave(String channel) {
-		pack.setMessage("/leave");
-		pack.setChannel("");
-		//System.out.println("leave channel command not yet implemented");
-		// TODO Auto-generated method stub
-		
+		leave();
 	}
 	/**
 	 * Leave chat and disconnect from server
