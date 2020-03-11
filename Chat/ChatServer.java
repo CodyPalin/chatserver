@@ -40,9 +40,12 @@ class UserListener extends Thread{
 					}
 					continue;
 				}
-				ObjectOutputStream oout = new ObjectOutputStream(out);
-				oout.writeObject(pack.getName()+": "+pack.getMessage());
-				oout.flush();
+				String channel = pack.getChannel().toLowerCase();
+				if(ChatServer.channels.get(channel).contains(userid)) {
+					ObjectOutputStream oout = new ObjectOutputStream(out);
+					oout.writeObject(pack.getName()+": "+pack.getMessage());
+					oout.flush();
+				}
 			}
 		} catch (IOException e) {
 			System.out.println(e);
@@ -100,17 +103,47 @@ class UserConnection extends Thread{
 	        	}
 	        	else { //else should be a command string
 	        		//case statement here for commands that will be passed to server
-	        		String command = (String) input;
+	        		String commandinput = (String) input;
+	        		String[] command = commandinput.split(" ");
+	        		switch(command[0]) {
+	        		case "/join":
+	        			Set<Integer> clientlist = ChatServer.channels.get(command[1].toLowerCase());
+	        			if(clientlist == null) {
+	        				oout = new ObjectOutputStream(out);
+	        				oout.writeObject("SERVER: Channel does not exist, use /list to see a list of channels");
+	        				oout.flush();
+	        			}
+	        			else {
+	        				clientlist.add(userid);
+	        				oout = new ObjectOutputStream(out);
+	        				oout.writeObject("SERVER: Successfully joined channel:" + command[1]);
+	        				oout.flush();
+	        			}
+	        			break;
+	        		case "/leave":
+	        			Enumeration<Set<Integer>> channels = ChatServer.channels.elements();
+	        			while(channels.hasMoreElements())
+	        			{
+	        				boolean left = channels.nextElement().remove(userid);
+	        				if(left)
+	        				{
+		        				oout = new ObjectOutputStream(out);
+		        				oout.writeObject("SERVER: You have left the channel");
+		        				oout.flush();
+	        				}
+	        			}
+	        			break;
+	        		default:
+	        			break;
+	        		}
 	        	}
 			}
 			
 		}catch(IOException e)
 		{
-			System.out.println(e);
-			System.out.println("server has closed");
+			System.out.println("client"+userid+" has disconnected");
 		} catch (ClassNotFoundException e2) {
-			System.out.println(e2);
-			System.out.println("server has closed");
+			System.out.println("client"+userid+" has disconnected");
 		}
 	}
 }
@@ -132,9 +165,9 @@ public class ChatServer {
 			System.err.println(e);
 		}
     	ArrayList<String> chanls = new ArrayList<String>(Arrays.asList(
-    			"General",
-    			"Help",
-    			"Potato Central"
+    			"general",
+    			"help",
+    			"potato central"
     			)); //add more to this list if you want to add more channels
     	
     	for(String chan: chanls) {

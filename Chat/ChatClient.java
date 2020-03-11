@@ -219,6 +219,7 @@ public class ChatClient
 	 * 
 	 */
 	private static void leave() {
+		pack.setChannel("");
 		ObjectOutputStream oout;
 		try {
 			oout = new ObjectOutputStream(out);
