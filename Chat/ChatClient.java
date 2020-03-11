@@ -37,7 +37,7 @@ public class ChatClient
 	private static boolean expectingresponse = true;
 	public static void main(String args[]) {
 		if (args.length != 2) {
-			System.err.println("Usage: java TimeClient <serverhost> <port>");
+			System.err.println("Usage: java ChatClient <serverhost> <port>");
 			System.exit(1);
         }
         String host = args[0];
@@ -104,7 +104,7 @@ public class ChatClient
 	            		break;
 	            	case "/leave":
 	            		if(command.length == 1) {
-	            			leave();
+							leave();
 	            		}
 	            		else if(command.length == 2)
 	            		{
@@ -205,13 +205,22 @@ public class ChatClient
 		// TODO Auto-generated method stub
 		
 	}
+	
 	/**
 	 * Leave the current channel
-
+	 * 
+	 * @throws IOException
+	 * 
 	 */
 	private static void leave() {
-		System.out.println("leave command not yet implemented");
-		// TODO Auto-generated method stub
+		ObjectOutputStream oout;
+		try {
+			oout = new ObjectOutputStream(out);
+			oout.writeObject("/leave");
+	    	oout.flush();
+		} catch (IOException e1) {
+			System.out.println(e1);
+		} // attempt at leave
 		
 	}
 	/**
@@ -219,7 +228,9 @@ public class ChatClient
 	 * Leave the named channel
 	 */
 	private static void leave(String channel) {
-		System.out.println("leave channel command not yet implemented");
+		pack.setMessage("/leave");
+		pack.setChannel("");
+		//System.out.println("leave channel command not yet implemented");
 		// TODO Auto-generated method stub
 		
 	}
