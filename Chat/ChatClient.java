@@ -49,7 +49,6 @@ public class ChatClient
         	ObjectInputStream oin = new ObjectInputStream(in);
         	int usernum = (int) oin.readObject();
         	pack.setName("guest"+usernum);
-        	
         	new ChatListener(in).start();
             while(true){
             	//server output

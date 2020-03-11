@@ -9,10 +9,14 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.InetAddress;
 import java.lang.System;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -28,8 +32,8 @@ class UserListener extends Thread{
 	public void run(){
 		try {
 			while(true) {
-				String message = ChatServer.bqueues.get(userid).poll();
-				if(message == null) {
+				Package pack = ChatServer.bqueues.get(userid).poll();
+				if(pack == null) {
 					try {
 						Thread.sleep(50);
 					} catch (InterruptedException e) {
@@ -37,7 +41,7 @@ class UserListener extends Thread{
 					continue;
 				}
 				ObjectOutputStream oout = new ObjectOutputStream(out);
-				oout.writeObject(message);
+				oout.writeObject(pack.getName()+": "+pack.getMessage());
 				oout.flush();
 			}
 		} catch (IOException e) {
@@ -86,12 +90,12 @@ class UserConnection extends Thread{
 		        		channel = "[default]";
 		        	}
 		        	//just print to server console for now
-		        	String chatmessage = "{In channel: "+ channel+"}"+clientinput.getName()+": "+clientinput.getMessage();
-		        	System.out.println(message);
+		        	String chatmessage = "{In channel: "+ channel+"} "+clientinput.getName()+": "+clientinput.getMessage();
+		        	System.out.println(chatmessage);
 		        	
-		        	Enumeration<BlockingQueue<String>> allthreads = ChatServer.bqueues.elements();
+		        	Enumeration<BlockingQueue<Package>> allthreads = ChatServer.bqueues.elements();
 		        	while(allthreads.hasMoreElements()) {
-		        		allthreads.nextElement().add(chatmessage);
+		        		allthreads.nextElement().add(clientinput);
 		        	}
 	        	}
 	        	else { //else should be a command string
@@ -103,10 +107,10 @@ class UserConnection extends Thread{
 		}catch(IOException e)
 		{
 			System.out.println(e);
-			System.out.println("server"+userid+" has closed");
+			System.out.println("server has closed");
 		} catch (ClassNotFoundException e2) {
 			System.out.println(e2);
-			System.out.println("server"+userid+" has closed");
+			System.out.println("server has closed");
 		}
 	}
 }
@@ -114,8 +118,8 @@ class UserConnection extends Thread{
 public class ChatServer {
 	private int port = 5121;
     private ServerSocket s;
-    public volatile static Dictionary<Integer, BlockingQueue<String>> bqueues = new Hashtable<Integer, BlockingQueue<String>>();
-
+    public volatile static Dictionary<Integer, BlockingQueue<Package>> bqueues = new Hashtable<Integer, BlockingQueue<Package>>();
+    public volatile static Dictionary<String, Set<Integer>> channels = new Hashtable<String, Set<Integer>>();
     public static void main(String args[]) {
         ChatServer server = new ChatServer();
     }
@@ -127,6 +131,15 @@ public class ChatServer {
 		} catch (IOException e) {
 			System.err.println(e);
 		}
+    	ArrayList<String> chanls = new ArrayList<String>(Arrays.asList(
+    			"General",
+    			"Help",
+    			"Potato Central"
+    			)); //add more to this list if you want to add more channels
+    	
+    	for(String chan: chanls) {
+    	channels.put(chan, new HashSet<Integer>());
+    	}
     	int userid = 0;
     	Socket client;
     	while(true)
