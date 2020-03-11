@@ -82,9 +82,6 @@ public class ChatClient
 	            	case "/leave":
 	            		if(command.length == 1) {
 							leave();
-							ObjectOutputStream oout = new ObjectOutputStream(out); //attempt at leave
-							oout.writeObject(pack);
-	    					oout.flush();
 	            		}
 	            		else if(command.length == 2)
 	            		{
@@ -185,13 +182,23 @@ public class ChatClient
 		// TODO Auto-generated method stub
 		
 	}
+	
 	/**
 	 * Leave the current channel
-
+	 * 
+	 * @throws IOException
+	 * 
 	 */
 	private static void leave() {
-		pack.setMessage("/leave");
-		pack.setChannel("");
+		ObjectOutputStream oout;
+		try {
+			oout = new ObjectOutputStream(out);
+			oout.writeObject("/leave");
+	    	oout.flush();
+		} catch (IOException e1) {
+			System.out.println(e1);
+		} // attempt at leave
+		
 	}
 	/**
 	 * @param channel
