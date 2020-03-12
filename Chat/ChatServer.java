@@ -116,7 +116,7 @@ class UserConnection extends Thread{
 	        			else {
 	        				clientlist.add(userid);
 	        				oout = new ObjectOutputStream(out);
-	        				oout.writeObject("SERVER: Successfully joined channel:" + command[1]);
+	        				oout.writeObject("SERVER: Successfully joined channel: " + command[1]);
 	        				oout.flush();
 	        			}
 	        			break;
@@ -133,6 +133,18 @@ class UserConnection extends Thread{
 	        				}
 	        			}
 	        			break;
+	        		case "/list":
+	        			String list = "";
+	        			Enumeration<String> c = ChatServer.channels.keys();
+	        			while(c.hasMoreElements())
+	        			{
+	        				String currentc = c.nextElement();
+	        				int numchatters = ChatServer.channels.get(currentc).size();
+	        				list+=currentc+" ("+numchatters+" chatters)\n";
+	        			}
+	        			oout = new ObjectOutputStream(out);
+        				oout.writeObject(list);
+        				oout.flush();
 	        		default:
 	        			break;
 	        		}
