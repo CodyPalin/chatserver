@@ -66,6 +66,19 @@ class UserConnection extends Thread{
 		this.userid = userid;
 		setPriority(NORM_PRIORITY - 1);
 	}
+	public String stats() {
+		String retval = "";
+		Enumeration<Set<Integer>> channels = ChatServer.channels.elements();
+		int numchatters = 0;
+		while(channels.hasMoreElements())
+		{
+			numchatters+=channels.nextElement().size();
+		}
+		retval +="Number of users in chat: "+numchatters+", \n";
+		retval +="Total clients ever connected to this server: " +ChatServer.totalclients;
+		return "here are some stats: \n"+retval;
+		
+	}
 	public void run(){
 		try {
 			if(ChatServer.debug)
@@ -87,6 +100,12 @@ class UserConnection extends Thread{
 			boolean connected = true;
 			while(connected) {
 	        	ObjectInputStream oin = new ObjectInputStream(in);
+	        	
+	        	ChatServer.task.cancel();
+	        	ChatServer.task = new MyTimerTask();
+	        	ChatServer.timer.cancel();
+	        	ChatServer.timer = new Timer();
+	        	ChatServer.timer.schedule(ChatServer.task, 300000);
 	        	//if chat message
 	        	Object input = oin.readObject();
 	        	if(input instanceof Package) {
@@ -150,6 +169,12 @@ class UserConnection extends Thread{
 	        			oout = new ObjectOutputStream(out);
         				oout.writeObject(list);
         				oout.flush();
+        				break;
+	        		case "/stats":
+	        			oout = new ObjectOutputStream(out);
+        				oout.writeObject(stats());
+        				oout.flush();
+	        			break;
 	        		default:
 	        			break;
 	        		}
@@ -189,14 +214,26 @@ class MyTimerTask extends TimerTask{
 	}
 }
 class Shutdown extends Thread {
-
+	public String stats() {
+		String retval = "";
+		Enumeration<Set<Integer>> channels = ChatServer.channels.elements();
+		int numchatters = 0;
+		while(channels.hasMoreElements())
+		{
+			numchatters+=channels.nextElement().size();
+		}
+		retval +="Number of users in chat: "+numchatters+", \n";
+		retval +="Total clients ever connected to this server: " +ChatServer.totalclients+"\n";
+		return "here are some stats: \n"+retval;
+		
+	}
     public void run() {
     	if(ChatServer.debug)
     		System.out.println("Shutting down server in 5 seconds...");
     	Package serverpack = new Package();
     	serverpack.setChannel("SERVER_MESSAGE");
     	serverpack.setName("SERVER");
-    	serverpack.setMessage("The server will be shutting down in 5 seconds.");
+    	serverpack.setMessage("The server will be shutting down in 5 seconds.\n"+stats());
     	Enumeration<BlockingQueue<Package>> allthreads = ChatServer.bqueues.elements();
     	while(allthreads.hasMoreElements()) {
     		allthreads.nextElement().add(serverpack);
@@ -206,6 +243,7 @@ class Shutdown extends Thread {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+        
         System.out.println("Goodbye");
     }
  }
@@ -214,6 +252,7 @@ public class ChatServer {
 	volatile static boolean debug = false;
 	volatile static Timer timer;
 	volatile static TimerTask task;
+	volatile static int totalclients = 0;
     private ServerSocket s;
     public volatile static Dictionary<Integer, BlockingQueue<Package>> bqueues = new Hashtable<Integer, BlockingQueue<Package>>();
     public volatile static Dictionary<String, Set<Integer>> channels = new Hashtable<String, Set<Integer>>();
@@ -277,7 +316,7 @@ public class ChatServer {
     	ArrayList<String> chanls = new ArrayList<String>(Arrays.asList(
     			"general",
     			"help",
-    			"potato central"
+    			"potatoes"
     			)); //add more to this list if you want to add more channels
     	
     	for(String chan: chanls) {
@@ -291,6 +330,7 @@ public class ChatServer {
     			//connect
     			client = s.accept();
     			userid++;
+    			totalclients++;
     			if(debug)
 	    			System.out.println(
 					        "Received connect from " + client.getInetAddress().getHostAddress() + ": " + client.getPort());
