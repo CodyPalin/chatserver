@@ -21,11 +21,12 @@ class ChatListener extends Thread{
 				System.out.println(chatmessage);
 			}
 		} catch (IOException e) {
-			System.out.println(e);
 			System.out.println("Server has closed.");
+			ChatClient.notQuit = false;
+			
 		} catch (ClassNotFoundException e) {
-			System.out.println(e);
 			System.out.println("Server has closed.");
+			ChatClient.notQuit = false;
 		}
 	}
 }
@@ -36,12 +37,13 @@ public class ChatClient
 	private static Package pack = new Package();
 	private static boolean expectingresponse = true;
 	private static Socket s;
-	private static boolean notQuit = false;
+	static volatile boolean notQuit = false;
 	public static void main(String args[]) {
 		// if (args.length != 2) {
 		// 	System.err.println("Usage: java ChatClient <serverhost> <port>");
 		// 	System.exit(1);
 		// }
+	System.out.println("You are not yet connected to a server, use /connect to connect to one.");
 	while(true){
 		while(!notQuit){
 			Scanner scanner = new Scanner(System.in);
@@ -82,7 +84,8 @@ public class ChatClient
             	//client input (put this on a thread? or have a thread that just waits for input from server?)
 	            Scanner scanner = new Scanner(System.in);
 	            String input = scanner.nextLine();
-	            
+	            if(input.equals(""))
+	            	continue;
 	            if(input.charAt(0) == '/')
 	            {
 	            	String[] command = input.split(" ");
@@ -169,12 +172,18 @@ public class ChatClient
 	            	}
 	            }
 	            else {
-	            	//chat message code
-	            	ObjectOutputStream oout = new ObjectOutputStream(out);
-	            	//TODO check to see if in a channel before sending message
-	            	pack.setMessage(input);
-	    			oout.writeObject(pack);
-	    			oout.flush();
+	            	if(pack.getChannel().equals(""))
+	            	{
+	            		System.out.println("You have not yet joined a channel, use /join to connect to one.");
+	            	}
+            		else {
+		            	//chat message code
+		            	ObjectOutputStream oout = new ObjectOutputStream(out);
+		            	//TODO check to see if in a channel before sending message
+		            	pack.setMessage(input);
+		    			oout.writeObject(pack);
+		    			oout.flush();
+	            	}
 	            }
 				//System.out.println("your input is: "+input);
             }

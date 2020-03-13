@@ -41,15 +41,16 @@ class UserListener extends Thread{
 					continue;
 				}
 				String channel = pack.getChannel().toLowerCase();
-				if(ChatServer.channels.get(channel).contains(userid)) {
+				if(ChatServer.channels.get(channel).contains(userid) || channel.equals("SERVER_MESSAGE")) {
 					ObjectOutputStream oout = new ObjectOutputStream(out);
 					oout.writeObject(pack.getName()+": "+pack.getMessage());
 					oout.flush();
 				}
 			}
 		} catch (IOException e) {
-			System.out.println(e);
-			System.out.println("client"+userid+" has disconnected");
+			//System.out.println(e);
+			if(ChatServer.debug)
+				System.out.println("client"+userid+" has disconnected");
 		}
 	}
 }
@@ -65,7 +66,8 @@ class UserConnection extends Thread{
 	}
 	public void run(){
 		try {
-			System.out.println("starting chat with client "+ client.getInetAddress().getHostAddress());
+			if(ChatServer.debug)
+				System.out.println("starting chat with client "+ client.getInetAddress().getHostAddress());
 			out = client.getOutputStream();
 			in = client.getInputStream();
 			//tell client their temp nickname
@@ -94,7 +96,8 @@ class UserConnection extends Thread{
 		        	}
 		        	//just print to server console for now
 		        	String chatmessage = "{In channel: "+ channel+"} "+clientinput.getName()+": "+clientinput.getMessage();
-		        	System.out.println(chatmessage);
+		        	if(ChatServer.debug)
+		        		System.out.println(chatmessage);
 		        	
 		        	Enumeration<BlockingQueue<Package>> allthreads = ChatServer.bqueues.elements();
 		        	while(allthreads.hasMoreElements()) {
@@ -153,26 +156,93 @@ class UserConnection extends Thread{
 			
 		}catch(IOException e)
 		{
-			System.out.println("client"+userid+" has disconnected");
+			if(ChatServer.debug)
+				System.out.println("client"+userid+" has disconnected");
 		} catch (ClassNotFoundException e2) {
-			System.out.println("client"+userid+" has disconnected");
+			if(ChatServer.debug)
+				System.out.println("client"+userid+" has disconnected");
 		}
 	}
 }
+class Shutdown extends Thread {
 
+    public void run() {
+    	if(ChatServer.debug)
+    		System.out.println("Shutting down server in 5 seconds...");
+    	Package serverpack = new Package();
+    	serverpack.setChannel("SERVER_MESSAGE");
+    	serverpack.setName("SERVER");
+    	serverpack.setMessage("The server will be shutting down in 5 seconds.");
+    	Enumeration<BlockingQueue<Package>> allthreads = ChatServer.bqueues.elements();
+    	while(allthreads.hasMoreElements()) {
+    		allthreads.nextElement().add(serverpack);
+    	}
+        try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+        System.out.println("Goodbye");
+    }
+ }
 public class ChatServer {
-	private int port = 5121;
+	private static int port = 5121;
+
+	volatile static boolean debug = false;
     private ServerSocket s;
     public volatile static Dictionary<Integer, BlockingQueue<Package>> bqueues = new Hashtable<Integer, BlockingQueue<Package>>();
     public volatile static Dictionary<String, Set<Integer>> channels = new Hashtable<String, Set<Integer>>();
     public static void main(String args[]) {
+		if(args.length != 2 && args.length != 4)
+		{
+			System.err.println("Usage: java ChatServer -p <port#> -d <debug-level>");
+			System.exit(1);
+		}
+		String portinput = "";
+		String debuginput = "";
+		if(args[0].equals("-p")) 
+			portinput = args[1];
+		if(args.length > 2)
+		{
+			debuginput = args[3];
+			if(args[2].equals("-p")) {
+				portinput = args[3];
+				debuginput = args[1];
+			}
+		}
+    	if(portinput != "") {
+    		int p = 0;
+    		try {
+    		p = Integer.parseInt(portinput);
+    		}catch(NumberFormatException e1) {
+    			System.err.println("Usage: java ChatServer -p <port#> -d <debug-level>");
+    			System.exit(1);
+    		}
+    		if(p!=0)
+    			port = p;
+    	}
+    	if(debuginput != "") {
+    		int d = 0;
+    		try {
+    		d = Integer.parseInt(debuginput);
+    		}catch(NumberFormatException e1) {
+    			System.err.println("Usage: java ChatServer -p <port#> -d <debug-level>");
+    			System.exit(1);
+    		}
+    		if(d!=0)
+    		{
+    			debug = true;
+    		}
+    	}
+    	Runtime.getRuntime().addShutdownHook(new Shutdown());
         ChatServer server = new ChatServer();
     }
 
     public ChatServer() {
     	try {
 			s = new ServerSocket(port);
-			System.out.println("server up and running on port " + port + " " + InetAddress.getLocalHost());
+			if(debug)
+				System.out.println("server up and running on port " + port + " " + InetAddress.getLocalHost());
 		} catch (IOException e) {
 			System.err.println(e);
 		}
@@ -193,13 +263,14 @@ public class ChatServer {
     			//connect
     			client = s.accept();
     			userid++;
-    			System.out.println(
-				        "Received connect from " + client.getInetAddress().getHostAddress() + ": " + client.getPort());
+    			if(debug)
+	    			System.out.println(
+					        "Received connect from " + client.getInetAddress().getHostAddress() + ": " + client.getPort());
     			//create thread's specific blocking queue, this will store chats sent from other clients to this client
     			bqueues.put(userid, new LinkedBlockingQueue<>(500));
     			new UserConnection(client, userid).start();
     		}catch (IOException e) {
-				System.out.println(e);
+				System.err.println(e);
 			}
     	}
     	
