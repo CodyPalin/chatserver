@@ -17,6 +17,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -41,7 +43,7 @@ class UserListener extends Thread{
 					continue;
 				}
 				String channel = pack.getChannel().toLowerCase();
-				if(ChatServer.channels.get(channel).contains(userid) || channel.equals("SERVER_MESSAGE")) {
+				if(channel.equals("server_message")||ChatServer.channels.get(channel).contains(userid)) {
 					ObjectOutputStream oout = new ObjectOutputStream(out);
 					oout.writeObject(pack.getName()+": "+pack.getMessage());
 					oout.flush();
@@ -164,6 +166,28 @@ class UserConnection extends Thread{
 		}
 	}
 }
+class MyTimerTask extends TimerTask{
+	public void run()
+	{
+		if(ChatServer.debug)
+    		System.out.println("Shutting down server due to inactivity");
+    	Package serverpack = new Package();
+    	serverpack.setChannel("SERVER_MESSAGE");
+    	serverpack.setName("SERVER");
+    	serverpack.setMessage("Shutting down server due to inactivity.");
+    	Enumeration<BlockingQueue<Package>> allthreads = ChatServer.bqueues.elements();
+    	while(allthreads.hasMoreElements()) {
+    		allthreads.nextElement().add(serverpack);
+    	}
+    	try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	System.exit(0);
+	}
+}
 class Shutdown extends Thread {
 
     public void run() {
@@ -187,8 +211,9 @@ class Shutdown extends Thread {
  }
 public class ChatServer {
 	private static int port = 5121;
-
 	volatile static boolean debug = false;
+	volatile static Timer timer;
+	volatile static TimerTask task;
     private ServerSocket s;
     public volatile static Dictionary<Integer, BlockingQueue<Package>> bqueues = new Hashtable<Integer, BlockingQueue<Package>>();
     public volatile static Dictionary<String, Set<Integer>> channels = new Hashtable<String, Set<Integer>>();
@@ -235,6 +260,9 @@ public class ChatServer {
     		}
     	}
     	Runtime.getRuntime().addShutdownHook(new Shutdown());
+    	task = new MyTimerTask();
+		timer = new Timer();
+        timer.schedule(task, 300000);
         ChatServer server = new ChatServer();
     }
 
