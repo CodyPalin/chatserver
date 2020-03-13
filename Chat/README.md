@@ -40,3 +40,6 @@ After the blocking queue was set up, all the further development was just a matt
 
 Omar: worked on various ChatClient commmands while also tweaking the package.java or rather the makings of package.java.
 Cody: Worked on the server side and implementing the blocking queue datastructure as well as creating the different threads needed.
+
+short video showing off our server and clients chatting:
+https://drive.google.com/file/d/1QxB7Liy7DvjPiVTSg6XfPuiGjsVzI23L/view?usp=sharing
