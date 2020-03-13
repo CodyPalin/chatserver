@@ -87,6 +87,12 @@ class UserConnection extends Thread{
 			boolean connected = true;
 			while(connected) {
 	        	ObjectInputStream oin = new ObjectInputStream(in);
+	        	
+	        	ChatServer.task.cancel();
+	        	ChatServer.task = new MyTimerTask();
+	        	ChatServer.timer.cancel();
+	        	ChatServer.timer = new Timer();
+	        	ChatServer.timer.schedule(ChatServer.task, 300000);
 	        	//if chat message
 	        	Object input = oin.readObject();
 	        	if(input instanceof Package) {
